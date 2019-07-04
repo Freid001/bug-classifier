@@ -1,0 +1,48 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            url 'http://dl.bintray.com/vermeulen-mp/gradle-plugins'
+        }
+    }
+    dependencies {
+        classpath 'com.h2database:h2:1.4.191'
+        classpath 'mysql:mysql-connector-java:6.0.6'
+    }
+}
+
+task incrementVersion {
+    doLast {
+        def versionFile = new File("VERSION")
+        def versionTuple = versionFile.text.tokenize(".").collect({s -> s.toInteger()})
+        versionTuple[2] += 1
+        versionFile.text = versionTuple.join(".")
+    }
+}
+
+task build {
+    def version = new File("VERSION").text.trim()
+
+    doLast {
+        exec{
+            workingDir '.'
+            commandLine 'docker', 'build',
+                    '--build-arg', "VERSION=${version}",
+                    '-t', "bug-recognition:${version}", "."
+        }
+
+        exec{
+            workingDir '.'
+            commandLine 'docker', 'tag', "bug-recognition:${version}", 'bug-recognition:latest'
+        }
+    }
+}
+
+task run {
+    dependsOn = ["build"]
+    doFirst {
+        exec {
+            commandLine 'docker-compose', 'up', "-d"
+        }
+    }
+}

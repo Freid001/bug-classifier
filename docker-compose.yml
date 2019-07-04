@@ -1,0 +1,7 @@
+version: "3"
+services:
+  bug-recognition:
+    image: bug-classifier:latest
+    command: run
+    ports:
+      - 8000:8000
