@@ -1,8 +1,9 @@
 # Bug classifier
 
 ## About
-* A small api which uses a pre-calculated model to make predictions.
+* A small api which uses a pre-calculated model to classify bug images.
 * The notebook `bug-classifier.ipynb` shows how I trained the model.
+* The model classifies bugs into the categories: `bee`, `wasp`, `moth`, `ant`.
 * The purpose of this project was to gain some experience using fast.ai.
 * For more information see fast.ai lesson 2 [here](https://github.com/fastai/course-v3/blob/master/nbs/dl1/lesson2-download.ipynb).
 

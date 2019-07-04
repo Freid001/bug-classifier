@@ -49,9 +49,8 @@ def predict_image_from_bytes(bytes):
     pred_class, pred_idx, outputs = learner.predict(img)
 
     return JSONResponse({
-        "prediction": pred_class.obj,
-        "pred_idx": pred_idx,
-        "output": outputs[pred_idx].item()
+        "class": pred_class.obj,
+        "probability": outputs[pred_idx].item()
     })
 
 @app.route("/api/classify", methods=["GET"])

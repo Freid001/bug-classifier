@@ -1,6 +1,6 @@
 version: "3"
 services:
-  bug-recognition:
+  bug-classifier:
     image: bug-classifier:latest
     command: run
     ports:

@@ -28,12 +28,12 @@ task build {
             workingDir '.'
             commandLine 'docker', 'build',
                     '--build-arg', "VERSION=${version}",
-                    '-t', "bug-recognition:${version}", "."
+                    '-t', "bug-classifier:${version}", "."
         }
 
         exec{
             workingDir '.'
-            commandLine 'docker', 'tag', "bug-recognition:${version}", 'bug-recognition:latest'
+            commandLine 'docker', 'tag', "bug-classifier:${version}", 'bug-classifier:latest'
         }
     }
 }
@@ -43,6 +43,14 @@ task run {
     doFirst {
         exec {
             commandLine 'docker-compose', 'up', "-d"
+        }
+    }
+}
+
+task stop {
+    doFirst {
+        exec {
+            commandLine 'docker-compose', 'stop'
         }
     }
 }
