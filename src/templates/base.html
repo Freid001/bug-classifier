@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="freid001">
+    <title>App</title>
+    <link rel="stylesheet" href="{{ url_for('statics', path='/css/bootstrap.min.css') }}">
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-md navbar-light bg-light">
+      <a class="navbar-brand" href="/">App</a>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href="/upload">Upload</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/url">Url</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    <br />
+    <div class="container">
+      {% block content %}{% endblock %}
+    </div>
+  </body>
+</html>

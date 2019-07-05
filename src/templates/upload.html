@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!--Form-->
+<div class="row mb-3">
+    <div class="col-md-12">
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <div class="input-group">
+                <label for="file">Select image to upload:</label>
+                <input type="file" class="form-control-file" id="file" name="file">
+            </div>
+            <div class="input-group mt-2">
+                <input type="submit" class="btn btn-primary" value="Upload">
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

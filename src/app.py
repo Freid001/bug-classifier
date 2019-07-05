@@ -1,6 +1,9 @@
 from starlette.applications import Starlette
 from starlette.responses import JSONResponse
 from starlette.templating import Jinja2Templates
+from starlette.staticfiles import StaticFiles
+from starlette.schemas import SchemaGenerator
+from starlette.requests import Request
 from io import BytesIO
 from pathlib import Path
 from fastai.vision import (
@@ -11,11 +14,61 @@ from fastai.vision import (
 import sys
 import uvicorn
 import aiohttp
+import yaml
+import requests
 import logging
 
-app = Starlette()
 path = Path(__file__).parent
 errors = []
+
+# define open api schemas
+schemas = SchemaGenerator({
+    "openapi": "3.0.0",
+    "info": {
+        "title": "App",
+        "version": "1.0"
+    },
+    "servers": [{
+        "url": "http://localhost:{port}",
+        "variables": {
+            "port": {
+                "default": "8000"
+            }
+        }
+    }],
+    "schemas": {
+        "Classify": {
+            "type": "object",
+            "properties": {
+                "class": {
+                    "type": "string"
+                },
+                "probability": {
+                    "type": "integer"
+                }
+            }
+        },
+        "ErrorMessage": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "Errors": {
+            "type": "array",
+            "items": {
+                "$ref": "#/schemas/ErrorMessage"
+            }
+        }
+    }
+})
+
+app = Starlette()
+
+# load statics
+app.mount('/statics', StaticFiles(directory=str(path)+'/statics'), name='statics')
 
 # load html templates
 templates = Jinja2Templates(directory=str(path)+'/templates')
@@ -24,6 +77,7 @@ templates = Jinja2Templates(directory=str(path)+'/templates')
 learner = load_learner(str(path)+'/../exports', 'bug.pkl')
 
 async def get_bytes(url):
+    logging.info(url)
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as response:
@@ -48,18 +102,41 @@ def predict_image_from_bytes(bytes):
     img = open_image(BytesIO(bytes))
     pred_class, pred_idx, outputs = learner.predict(img)
 
-    return JSONResponse({
+    return {
         "class": pred_class.obj,
         "probability": outputs[pred_idx].item()
-    })
+    }
 
 @app.route("/api/classify", methods=["GET"])
 async def classify_url(request):
+    """
+    summary: 'Classify an image by url.'
+    parameters:
+    - name: 'url'
+      description: 'Url of image.'
+      in: 'query'
+      schema:
+        type: 'string'
+      required: true
+    responses:
+        200:
+            description: 'ok'
+            content:
+                application/json:
+                  schema:
+                    $ref: '#/schemas/Classify'
+        400:
+            description: 'bad request'
+            content:
+                application/json:
+                  schema:
+                    $ref: '#/schemas/Errors'
+    """
     errors.clear()
     if 'url' in request.query_params:
         bytes = await get_bytes(request.query_params['url'])
         if bytes is not False:
-            return predict_image_from_bytes(bytes)
+            return JSONResponse(predict_image_from_bytes(bytes), 200)
     else:
         errors.append({
             "message": "Url is required."
@@ -67,7 +144,7 @@ async def classify_url(request):
 
     return JSONResponse({
         "errors": errors
-    })
+    }, 400)
 
 # @app.route("/api/classify", methods=["POST"])
 # async def upload(request):
@@ -76,18 +153,45 @@ async def classify_url(request):
 #     return
 # predict_image_from_bytes(bytes)
 
-@app.route("/")
-def index(request):
+@app.route("/upload", methods=["GET"], include_in_schema=False)
+def upload(request):
+    return templates.TemplateResponse('upload.html', {'request': request})
+
+@app.route("/upload", methods=["POST"], include_in_schema=False)
+def upload(request):
+    return templates.TemplateResponse('upload.html', {'request': request})
+
+@app.route("/url", methods=["GET"], include_in_schema=False)
+async def url(request):
+    errors.clear()
+
+    context = {'request': request}
+
+    if 'url' in request.query_params:
+        context.update({'url': request.query_params['url']})
+
+        bytes = await get_bytes(context.get('url'))
+        if bytes is not False:
+            context.update({'prediction': predict_image_from_bytes(bytes)})
+
+    context.update({'errors': errors})
+
+    return templates.TemplateResponse('url.html', context)
+
+@app.route("/", methods=["GET"], include_in_schema=False)
+def upload(request):
     return templates.TemplateResponse('index.html', {'request': request})
 
-if __name__ == "__main__":
-    if "server" in sys.argv:
+@app.route("/api/schema", methods=["GET"], include_in_schema=False)
+def openapi_schema(request):
+    return JSONResponse(schemas.get_schema(routes=app.routes))
+
+if __name__ == '__main__':
+    assert sys.argv[-1] in ("server", "schema"), "Usage: app.py [server|schema]"
+
+    if sys.argv[-1] == "server":
         uvicorn.run(app, host="0.0.0.0", port=8000)
 
-# https://media.wired.com/photos/5bb532b7f8a2e62d0bd5c4e3/master/pass/bee-146810332.jpg
-# https://i.cbc.ca/1.3624693.1502504172!/fileImage/httpImage/image.jpg_gen/derivatives/16x9_780/yellow-jacket.jpg
-# https://media.mnn.com/assets/images/2016/04/atlas-moth-scale.jpg.838x0_q80.jpg
-
-
-
-# https://medium.com/@lankinen/fastai-model-to-production-this-is-how-you-make-web-app-that-use-your-model-57d8999450cf
+    elif sys.argv[-1] == "schema":
+        schema = schemas.get_schema(routes=app.routes)
+        print(yaml.dump(schema, default_flow_style=False))

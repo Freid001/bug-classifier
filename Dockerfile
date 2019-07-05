@@ -8,7 +8,7 @@ RUN pip install torch_nightly -f https://download.pytorch.org/whl/nightly/cpu/to
 RUN pip install fastai
 
 # Install starlette and uvicorn
-RUN pip install starlette uvicorn python-multipart aiohttp jinja2
+RUN pip install starlette uvicorn python-multipart aiohttp jinja2 aiofiles connexion[swagger-ui]
 
 COPY entrypoint.sh /opt/app/bin/entrypoint.sh
 COPY ./ /var/www

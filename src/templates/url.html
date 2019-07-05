@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!--Form-->
+<div class="row mb-3">
+    <div class="col-md-12">
+        <form action="/url" method="get" class="navbar-form navbar-left padding-top-xs">
+            <div class="input-group">
+                <input type="text" class="form-control" name="url" placeholder="url" value="{{url}}"/>
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-primary">Analyze</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!--Errors-->
+{% if errors %}
+    {% for error in errors -%}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="alert alert-danger" role="alert">
+              {{error.message}}
+            </div>
+        </div>
+    </div>
+    {%- endfor %}
+{% endif %}
+
+<!--Table-->
+{% if url and prediction %}
+<div class="row">
+    <div class="col-md-6">
+<!--        <img src="{{url}}" class="img-thumbnail"/>-->
+    </div>
+    <div class="col-md-6">
+        <table class="table">
+          <tbody>
+            <tr>
+              <td>Classification</td>
+              <td>{{prediction.class|capitalize}}</td>
+            </tr>
+            <tr>
+              <td>Probability</td>
+              <td>{{prediction.probability|round(2, 'floor')}}</td>
+            </tr>
+          </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+<!--# https://media.wired.com/photos/5bb532b7f8a2e62d0bd5c4e3/master/pass/bee-146810332.jpg-->
+<!--# https://i.cbc.ca/1.3624693.1502504172!/fileImage/httpImage/image.jpg_gen/derivatives/16x9_780/yellow-jacket.jpg-->
+<!--# https://media.mnn.com/assets/images/2016/04/atlas-moth-scale.jpg.838x0_q80.jpg-->
+<!--# https://media.gettyimages.com/photos/diamondback-moth-plutella-xylostella-picture-id136119552?s=2048x2048-->
+<!--# https://media.gettyimages.com/photos/silver-y-moth-picture-id574400731?s=2048x2048-->
+<!--# https://media.istockphoto.com/photos/black-ants-big-concourse-picture-id1031336442-->
+<!--# https://media.istockphoto.com/photos/wood-ants-pulling-dead-ant-picture-id114410002-->
+<!--# https://media.istockphoto.com/photos/ants-in-panic-protecting-their-eggs-picture-id173894259-->
+<!--# https://media.istockphoto.com/photos/ant-on-cactus-picture-id139889755-->
+
+<!--# https://medium.com/@lankinen/fastai-model-to-production-this-is-how-you-make-web-app-that-use-your-model-57d8999450cf-->
