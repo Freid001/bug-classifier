@@ -16,4 +16,40 @@
         </form>
     </div>
 </div>
+
+<!--Errors-->
+{% if errors %}
+    {% for error in errors -%}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="alert alert-danger" role="alert">
+              {{error.message}}
+            </div>
+        </div>
+    </div>
+    {%- endfor %}
+{% endif %}
+
+<!--Table-->
+{% if prediction %}
+<div class="row">
+    <div class="col-md-6">
+        <img src="data:;base64,{{image|safe}}" class="img-thumbnail"/>
+    </div>
+    <div class="col-md-6">
+        <table class="table">
+          <tbody>
+            <tr>
+              <td>Classification</td>
+              <td>{{prediction.class|capitalize}}</td>
+            </tr>
+            <tr>
+              <td>Probability</td>
+              <td>{{prediction.probability|round(2, 'floor')}}</td>
+            </tr>
+          </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
 {% endblock %}
