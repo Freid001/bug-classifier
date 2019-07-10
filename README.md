@@ -30,6 +30,21 @@ Follow the installation guide [here](https://course.fast.ai/start_aws.html).
 
 ## Usage
 
+### User interface
 ```bash
-localhost:8000
+// classify a image file
+localhost:8000/upload
+
+// classify a url
+localhost:8000/url
 ```
+
+### Api
+
+##### GET /api/schema
+
+##### Returns
+
+##### GET /api/classify
+
+##### POST /api/classify

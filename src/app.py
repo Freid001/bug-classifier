@@ -39,11 +39,17 @@ schemas = SchemaGenerator({
         "Classify": {
             "type": "object",
             "properties": {
-                "class": {
-                    "type": "string"
+                "classified": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "probability": {
-                    "type": "integer"
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 }
             }
         },
@@ -72,11 +78,10 @@ app.mount('/statics', StaticFiles(directory=str(path)+'/statics'), name='statics
 # load html templates
 templates = Jinja2Templates(directory=str(path)+'/templates')
 
-# load exported learner
-learner = load_learner(str(path)+'/../exports', 'bug.pkl')
+# load exported learner => (bug.pkl, bug-multi.pkl)
+learner = load_learner(str(path)+'/../exports', 'bug-multi.pkl')
 
 async def get_bytes(url):
-    logging.info(url)
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as response:
@@ -101,9 +106,24 @@ def predict_image_from_bytes(bytes):
     img = open_image(BytesIO(bytes))
     pred_class, pred_idx, outputs = learner.predict(img)
 
+    logging.info(pred_class)
+    logging.info(pred_idx.tolist())
+
+    classified = []
+    probability = []
+    if not isinstance(pred_class.obj, str):
+        classified = pred_class.obj
+
+        for pred, output in zip(pred_idx.tolist(), outputs.tolist()):
+            if pred == 1.0:
+                probability.append(output)
+    else:
+        classified.append(pred_class.obj)
+        probability.append(outputs[pred_idx].item())
+
     return {
-        "class": pred_class.obj,
-        "probability": outputs[pred_idx].item()
+        "classified": classified,
+        "probability": probability
     }
 
 @app.route("/api/classify", methods=["GET"])
@@ -186,21 +206,15 @@ async def upload(request):
     errors.clear()
     context = {'request': request}
 
-    # try:
-    data = await request.form()
-
-    logging.info(data)
-
-    bytes = await (data["file"].read())
-    context.update({'image': b64encode(bytes).decode('utf8')})
-    context.update({'prediction': predict_image_from_bytes(bytes)})
-    # except:
-    #     errors.append({
-    #         "message": "Error reading file."
-    #     })
-
-    # logging.info(bytes)
-    # logging.info(b64encode(bytes).decode('utf8'))
+    try:
+        data = await request.form()
+        bytes = await (data["file"].read())
+        context.update({'image': b64encode(bytes).decode('utf8')})
+        context.update({'prediction': predict_image_from_bytes(bytes)})
+    except:
+        errors.append({
+            "message": "Error reading file."
+        })
 
     return templates.TemplateResponse('upload.html', context)
 

@@ -34,19 +34,26 @@
 {% if prediction %}
 <div class="row">
     <div class="col-md-6">
-        <img src="data:;base64,{{image|safe}}" class="img-thumbnail"/>
+<!--        <img src="data:;base64,{{image|safe}}" class="img-thumbnail"/>-->
     </div>
     <div class="col-md-6">
         <table class="table">
           <tbody>
-            <tr>
-              <td>Classification</td>
-              <td>{{prediction.class|capitalize}}</td>
+                        <tr>
+              <td>Classified</td>
+              <td>
+                {% for class in prediction.classified -%}
+                    <span class="badge badge-info mr-1">{{class}}</span>
+                {%- endfor %}
+              </td>
             </tr>
             <tr>
               <td>Probability</td>
-              <td>{{prediction.probability|round(2, 'floor')}}</td>
-            </tr>
+              <td>
+                {% for probability in prediction.probability -%}
+                    <span class="badge badge-dark mr-1">{{probability|round(2, 'floor')}}</span>
+                {%- endfor %}
+              </td>
           </tbody>
         </table>
     </div>
