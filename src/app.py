@@ -78,7 +78,7 @@ app.mount('/statics', StaticFiles(directory=str(path)+'/statics'), name='statics
 # load html templates
 templates = Jinja2Templates(directory=str(path)+'/templates')
 
-# load exported learner => (bug.pkl, bug-multi.pkl)
+# load exported learner => (bug.pkl, bug-multi-old.pkl)
 learner = load_learner(str(path)+'/../exports', 'bug-multi.pkl')
 
 async def get_bytes(url):
