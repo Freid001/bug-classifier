@@ -4,8 +4,9 @@ from starlette.templating import Jinja2Templates
 from starlette.staticfiles import StaticFiles
 from starlette.schemas import SchemaGenerator
 from io import BytesIO
-from pathlib import Path
 from base64 import b64encode
+from base64 import b64decode
+from pathlib import Path
 from fastai.vision import (
     open_image,
     load_learner,
@@ -16,6 +17,7 @@ import uvicorn
 import aiohttp
 import yaml
 import logging
+import base64
 
 path = Path(__file__).parent
 errors = []
@@ -66,6 +68,14 @@ schemas = SchemaGenerator({
             "items": {
                 "$ref": "#/schemas/ErrorMessage"
             }
+        },
+        "ImageData": {
+            "type": "object",
+            "properties": {
+                "image_data": {
+                    "type": "string"
+                }
+            }
         }
     }
 })
@@ -78,7 +88,7 @@ app.mount('/statics', StaticFiles(directory=str(path)+'/statics'), name='statics
 # load html templates
 templates = Jinja2Templates(directory=str(path)+'/templates')
 
-# load exported learner => (bug.pkl, bug-multi-old.pkl)
+# load exported learner => (bug.pkl, bug-multi.pkl)
 learner = load_learner(str(path)+'/../exports', 'bug-multi.pkl')
 
 async def get_bytes(url):
@@ -165,37 +175,48 @@ async def classify_url(request):
         "errors": errors
     }, 400)
 
-# @app.route("/api/classify", methods=["POST"])
-# async def classify_url(request):
-#     """
-#     summary: 'Classify an image binary.'
-#     responses:
-#         200:
-#             description: 'ok'
-#             content:
-#                 application/json:
-#                   schema:
-#                     $ref: '#/schemas/Classify'
-#         400:
-#             description: 'bad request'
-#             content:
-#                 application/json:
-#                   schema:
-#                     $ref: '#/schemas/Errors'
-#     """
-#     errors.clear()
-#     if 'url' in request.body.:
-#         bytes = await get_bytes(request.query_params['url'])
-#         if bytes is not False:
-#             return JSONResponse(predict_image_from_bytes(bytes), 200)
-#     else:
-#         errors.append({
-#             "message": "Url is required."
-#         })
-#
-#     return JSONResponse({
-#         "errors": errors
-#     }, 400)
+@app.route("/api/classify", methods=["POST"])
+async def classify_binary(request):
+    """
+    summary: 'Classify an base64 image.'
+    requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/schemas/ImageData'
+    responses:
+        200:
+            description: 'ok'
+            content:
+                application/json:
+                  schema:
+                    $ref: '#/schemas/Classify'
+        400:
+            description: 'bad request'
+            content:
+                application/json:
+                  schema:
+                    $ref: '#/schemas/Errors'
+    """
+    errors.clear()
+
+    json = await request.json()
+    if 'image_data' in json:
+        try:
+            return JSONResponse(predict_image_from_bytes(b64decode(json['image_data'])), 200)
+        except:
+            errors.append({
+                "message": "Error reading file."
+            })
+    else:
+        errors.append({
+            "message": "Required key: image_data."
+        })
+
+    return JSONResponse({
+        "errors": errors
+    }, 400)
 
 @app.route("/upload", methods=["GET"], include_in_schema=False)
 def upload(request):
