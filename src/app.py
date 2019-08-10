@@ -17,7 +17,6 @@ import uvicorn
 import aiohttp
 import yaml
 import logging
-import base64
 
 path = Path(__file__).parent
 errors = []

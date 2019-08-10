@@ -8,6 +8,8 @@
 * The purpose of this project was to gain some experience using fast.ai.
 * For more information see fast.ai lessons: 1,2 and 3 [here](https://course.fast.ai/).
 
+![screen1](img/screen1.png)
+
 ### Requirements
 
 * [Docker](https://www.docker.com/)
