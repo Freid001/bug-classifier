@@ -5,7 +5,7 @@
 * The notebook `bug-classifier.ipynb` shows how I trained the model.
 * The model `bug.pkl` classifies an image into a single category: `ant`, `bee`, `moth`, `wasp`.
 * The model `bug-multi.pkl` classifies an image into multiple categories: `ant`, `bee`, `flower`, `leaf`, `honeycomb`.
-* The purpose of this project was to gain some experience using fast.ai.
+* The purpose of this project was to gain some experience using fast.ai - image classification.
 * For more information see fast.ai lessons: 1,2 and 3 [here](https://course.fast.ai/).
 
 ![screen1](img/screen1.png)
